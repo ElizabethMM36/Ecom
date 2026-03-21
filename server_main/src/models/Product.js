@@ -10,10 +10,16 @@ const productSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now },
     serialNumber: {String},
   condition: { type: String, enum: ['New', 'Like New', 'Used', 'Fair'] },
-  
+  itemLocation: {
+    type: { type: String, default: 'Point' },
+    coordinates: { type: [Number], index: '2dsphere' },
+    city: String
+  },
   // AI Segment Fields
   aiRiskScore: { type: Number, default: 0 }, // 0 to 1 (calculated by FastAPI)
   isFlagged: { type: Boolean, default: false },
   clusterId: Number, // Assigned by K-Means
 status: { type: String, enum: ['available', 'sold', 'hidden'], default: 'available' }
 }, { timestamps: true });
+
+module.exports = mongoose.model('Product', productSchema);

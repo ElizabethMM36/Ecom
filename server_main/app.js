@@ -15,11 +15,15 @@ const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 db.once('open', () => console.log('Connected to MongoDB'));
 
-app.post('/', (req, res) => {
-    const newUser = new User({ name: 'John Doe', age: 30, email: 'john.doe@example.com' });
-    newUser.save()
-        .then(savedUser => res.json(savedUser))
-        .catch(err => res.status(500).json({ error: err.message }));
-});
+// Routes
+const userRoutes = require('./src/routes/userRoutes');
+const productRoutes = require('./src/routes/productRoutes');
+const orderRoutes = require('./src/routes/orderRoutes');
+const reviewRoutes = require('./src/routes/reviewRoutes');
+
+app.use('/users', userRoutes);
+app.use('/products', productRoutes);
+app.use('/orders', orderRoutes);
+app.use('/reviews', reviewRoutes);
 
 module.exports = app; 
