@@ -244,7 +244,7 @@ router.patch('/orders/:id/delivery-location', authMiddleware, async (req, res) =
     }
 });
 
-// POST: Release Funds from Escrow (after delivery confirmation)
+// POST: Release Funds from Escrow (after delivery confirmation) order ID buyers token
 router.post('/orders/:id/release', authMiddleware, async (req, res) => {
     try {
         const order = await Order.findById(req.params.id);

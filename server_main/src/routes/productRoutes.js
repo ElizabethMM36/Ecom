@@ -78,6 +78,7 @@ router.post('/products', authMiddleware, async (req, res) => {
            axios.post('FASTAPI_URL/analyze', { price, category, sellerId })
            .then(res => update Product with aiRiskScore)
         */
+
         res.status(201).json({ 
             success: true, 
             product: response,
@@ -113,9 +114,9 @@ router.get('/listings', async (req, res) => {
 });
 
 // GET: Nearby Products (Location-based Search)
-router.get('/listings/nearby', async (req, res) => {
+router.post('/listings/nearby', async (req, res) => {
     try {
-        const { latitude, longitude, maxDistance = 50 } = req.query;
+        const { latitude, longitude, maxDistance = 50 } = req.body;
 
         if (!latitude || !longitude) {
             return res.status(400).json({ error: 'latitude and longitude query parameters are required' });
