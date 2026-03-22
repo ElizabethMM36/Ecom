@@ -19,11 +19,9 @@ db.once('open', () => console.log('Connected to MongoDB'));
 const userRoutes = require('./src/routes/userRoutes');
 const productRoutes = require('./src/routes/productRoutes');
 const orderRoutes = require('./src/routes/orderRoutes');
-const reviewRoutes = require('./src/routes/reviewRoutes');
 
 app.use('/users', userRoutes);
 app.use('/products', productRoutes);
 app.use('/orders', orderRoutes);
-app.use('/reviews', reviewRoutes);
 
 module.exports = app; 
