@@ -4,9 +4,11 @@ const Product = require('../models/Product');
 const authMiddleware = require('../middleware/authMiddleware');
 const User = require('../models/User');
 const locationUtils = require('../utils/locationUtils');
+const { upload } = require('../config/cloudinary');
 
 // CREATE: New Product with Location
-router.post('/products', authMiddleware, async (req, res) => {
+router.post('/products', authMiddleware, upload.array('images', 5), async (req, res) => {
+    const imageUrls = req.files.map(file => file.path);
     try {
         const { 
             title, 
@@ -53,7 +55,7 @@ router.post('/products', authMiddleware, async (req, res) => {
             category,
             price,
             description,
-            images,
+            images: imageUrls,
             serialNumber,
             condition,
             // Store location in GeoJSON format for geographical queries
