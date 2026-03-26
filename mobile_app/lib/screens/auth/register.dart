@@ -1,106 +1,372 @@
 import 'package:flutter/material.dart';
-import '../../widgets/glass_card.dart';
-import '../../widgets/input_field.dart';
-import '../../widgets/gradient_button.dart';
-import '../../config/colors.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../core/theme/aura_theme.dart'; // Adjust path as needed
 
-class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
-  final nameController = TextEditingController();
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
-  final confirmPasswordController = TextEditingController();
-
-  void handleRegister() {
-    // Basic Validation logic
-    if (passwordController.text != confirmPasswordController.text) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Passwords do not match!")));
-      return;
-    }
-
-    // TODO: Call AuthService.register(...)
-    Navigator.pushReplacementNamed(context, '/login');
-  }
+class _RegisterScreenState extends State<RegisterScreen> {
+  bool _agreeToTerms = false;
+  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [AppColors.backgroundStart, AppColors.backgroundEnd],
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
-          ),
-        ),
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(25),
-            child: GlassCard(
+      // The Mesh Gradient Background
+      body: Stack(
+        children: [
+          const Positioned.fill(child: _MeshBackground()),
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
               child: Column(
-                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    "Join the Hub",
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 25),
-
-                  InputField(hint: "Full Name", controller: nameController),
-                  InputField(hint: "Email", controller: emailController),
-                  InputField(
-                    hint: "Password",
-                    controller: passwordController,
-                    isPassword: true,
-                  ),
-                  InputField(
-                    hint: "Confirm Password",
-                    controller: confirmPasswordController,
-                    isPassword: true,
-                  ),
-
-                  const SizedBox(height: 30),
-                  GradientButton(text: "REGISTER", onTap: handleRegister),
-
                   const SizedBox(height: 20),
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: RichText(
-                      text: const TextSpan(
-                        text: "Already a member? ",
-                        style: TextStyle(color: Colors.black54),
-                        children: [
-                          TextSpan(
-                            text: "Login",
-                            style: TextStyle(
-                              color: AppColors.gradientStart,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  _buildHeader(),
+                  const SizedBox(height: 40),
+                  _buildRegistrationCard(),
+                  const SizedBox(height: 40),
+                  _buildFooter(),
+                  const SizedBox(height: 80), // Space for bottom nav
                 ],
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Column(
+      children: [
+        Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            color: const Color(0xFF065F46), // Primary
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF065F46).withOpacity(0.2),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: const Icon(Icons.auto_awesome, color: Colors.white, size: 32),
+        ),
+        const SizedBox(height: 24),
+        Text(
+          'Aura',
+          style: GoogleFonts.lexend(
+            fontSize: 40,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -1.5,
+            color: const Color(0xFF002117), // on-surface
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Create your botanical account',
+          style: GoogleFonts.lexend(
+            fontSize: 16,
+            color: const Color(0xFF545F73), // on-surface-variant
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRegistrationCard() {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFBEC9C2).withOpacity(0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF065F46).withOpacity(0.06),
+            blurRadius: 40,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildInputField(
+              label: 'Full Name',
+              hint: 'Alex Rivera',
+              icon: Icons.person,
+            ),
+            const SizedBox(height: 24),
+            _buildInputField(
+              label: 'Email Address',
+              hint: 'alex@aura.shop',
+              icon: Icons.mail,
+            ),
+            const SizedBox(height: 24),
+            _buildInputField(
+              label: 'Phone Number',
+              hint: '+1 (555) 000-0000',
+              icon: Icons.call,
+            ),
+            const SizedBox(height: 24),
+            _buildInputField(
+              label: 'Password',
+              hint: '••••••••••••',
+              icon: Icons.lock,
+              isPassword: true,
+            ),
+            const SizedBox(height: 20),
+            _buildTermsCheckbox(),
+            const SizedBox(height: 32),
+            _buildSignUpButton(),
+          ],
         ),
       ),
     );
   }
+
+  Widget _buildInputField({
+    required String label,
+    required String hint,
+    required IconData icon,
+    bool isPassword = false,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            label.toUpperCase(),
+            style: GoogleFonts.lexend(
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.5,
+              color: const Color(0xFF545F73),
+            ),
+          ),
+        ),
+        TextFormField(
+          obscureText: isPassword,
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: GoogleFonts.lexend(
+              color: const Color(0xFF707973).withOpacity(0.6),
+            ),
+            filled: true,
+            fillColor: const Color(0xFFF7FAF6),
+            suffixIcon: Icon(
+              icon,
+              color: const Color(0xFF065F46).withOpacity(0.4),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: 20,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFBEC9C2)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFBEC9C2)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: Color(0xFF065F46),
+                width: 1.5,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTermsCheckbox() {
+    return Row(
+      children: [
+        Checkbox(
+          value: _agreeToTerms,
+          activeColor: const Color(0xFF065F46),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+          onChanged: (val) => setState(() => _agreeToTerms = val!),
+        ),
+        Expanded(
+          child: RichText(
+            text: TextSpan(
+              style: GoogleFonts.lexend(
+                color: const Color(0xFF545F73),
+                fontSize: 13,
+              ),
+              children: const [
+                TextSpan(text: 'I agree to the '),
+                TextSpan(
+                  text: 'Terms & Conditions',
+                  style: TextStyle(
+                    color: Color(0xFF065F46),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextSpan(text: ' and Privacy Policy.'),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSignUpButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: () {},
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF065F46),
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 10,
+          shadowColor: const Color(0xFF065F46).withOpacity(0.3),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Sign Up',
+              style: GoogleFonts.lexend(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(width: 10),
+            const Icon(Icons.arrow_forward, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFooter() {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Already have an account? ',
+              style: GoogleFonts.lexend(color: const Color(0xFF545F73)),
+            ),
+            TextButton(
+              onPressed: () {},
+              child: Text(
+                'Sign In',
+                style: GoogleFonts.lexend(
+                  color: const Color(0xFF065F46),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+        Container(
+          width: double.infinity,
+          height: 1,
+          color: const Color(0xFFBEC9C2).withOpacity(0.3),
+        ),
+        const SizedBox(height: 24),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _socialButton('assets/google.png'), // Add your assets
+            const SizedBox(width: 16),
+            _socialButton('assets/apple.png'),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _socialButton(String asset) {
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        color: const Color(0xFFEDF2ED),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Center(
+        child: Icon(Icons.ads_click, size: 20),
+      ), // Placeholder
+    );
+  }
+}
+
+// Custom Painter to replicate the tailwind radial-gradient-mesh
+class _MeshBackground extends StatelessWidget {
+  const _MeshBackground();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: const Color(0xFFF7FAF6),
+      child: CustomPaint(painter: _MeshPainter()),
+    );
+  }
+}
+
+class _MeshPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint1 = Paint()
+      ..shader =
+          RadialGradient(
+            colors: [
+              const Color(0xFF065F46).withOpacity(0.05),
+              Colors.transparent,
+            ],
+          ).createShader(
+            Rect.fromCircle(
+              center: const Offset(0, 0),
+              radius: size.width * 0.8,
+            ),
+          );
+
+    final paint2 = Paint()
+      ..shader =
+          RadialGradient(
+            colors: [
+              const Color(0xFF95D5B2).withOpacity(0.08),
+              Colors.transparent,
+            ],
+          ).createShader(
+            Rect.fromCircle(
+              center: Offset(size.width, size.height),
+              radius: size.width * 0.8,
+            ),
+          );
+
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint1);
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint2);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
