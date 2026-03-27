@@ -18,7 +18,7 @@ import '../../core/theme/aura_theme.dart';
 import '../../core/models/listing_draft.dart';
 import '../../core/services/api_service.dart';
 import 'camera_screen.dart';
-
+import '../../widgets/global_nav_bar.dart';
 import '../../widgets/form_fields.dart';
 
 // ── Result from CameraScreen ──────────────────────────────────────────────────
@@ -349,7 +349,6 @@ class _ListingScreenState extends State<ListingScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: _AuraBottomNav(),
     );
   }
 
@@ -728,91 +727,6 @@ class _SubmitButton extends StatelessWidget {
                     ],
                   ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Bottom nav ────────────────────────────────────────────────────────────────
-class _AuraBottomNav extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AuraTheme.surface,
-        border: Border(
-          top: BorderSide(color: AuraTheme.outlineVariant.withOpacity(0.2)),
-        ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _NavItem(icon: Icons.home_outlined, label: 'Home', active: false),
-              _NavItem(icon: Icons.search, label: 'Browse', active: false),
-              _NavItem(icon: Icons.add_circle, label: 'Sell', active: true),
-              _NavItem(
-                icon: Icons.notifications_outlined,
-                label: 'Alerts',
-                active: false,
-              ),
-              _NavItem(
-                icon: Icons.person_outline,
-                label: 'Profile',
-                active: false,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool active;
-  const _NavItem({
-    required this.icon,
-    required this.label,
-    required this.active,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {},
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-        decoration: BoxDecoration(
-          color: active ? AuraTheme.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: active ? Colors.white : const Color(0xFF545F73),
-              size: 22,
-            ),
-            const SizedBox(height: 3),
-            Text(
-              label.toUpperCase(),
-              style: GoogleFonts.lexend(
-                color: active ? Colors.white : const Color(0xFF545F73),
-                fontSize: 9,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ],
         ),
       ),
     );

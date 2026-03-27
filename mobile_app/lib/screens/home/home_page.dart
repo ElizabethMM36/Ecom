@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/aura_theme.dart';
 import '../product_detail_screen.dart';
 import '../../core/models/product.dart';
+import '../../widgets/global_nav_bar.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -12,6 +13,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  int _selectedTabIndex = 0;
+  int _currentBottomNavIndex = 0;
   // 1. Controller is now correctly defined within the State
   final TextEditingController _searchController = TextEditingController();
 
@@ -67,11 +70,18 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void _handleAction(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), duration: const Duration(seconds: 1)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: surfaceBg,
       appBar: _buildAppBar(),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         child: Column(

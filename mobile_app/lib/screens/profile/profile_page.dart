@@ -1,8 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../widgets/global_nav_bar.dart';
 
-class ProfilePage extends StatelessWidget {
-  const ProfilePage({super.key});
+class ProfilePage extends StatefulWidget {
+  final int selectedIndex; // Changed from const to final field
+
+  const ProfilePage({super.key, this.selectedIndex = 4});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  late int _currentBottomNavIndex;
+  @override
+  void initState() {
+    super.initState();
+    _currentBottomNavIndex = widget.selectedIndex;
+  }
+
+  void _handleAction(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), duration: const Duration(seconds: 1)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +52,7 @@ class ProfilePage extends StatelessWidget {
           ),
         ],
       ),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         child: Column(
