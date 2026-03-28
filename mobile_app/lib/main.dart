@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_app/screens/auth/register.dart';
+import 'package:mobile_app/screens/post_product/product_listing.dart';
 import 'package:provider/provider.dart'; // 1. ADD THIS FOR MULTIPROVIDER
 import 'package:mobile_app/providers/location_provider.dart'; // 2. ADD THIS FOR LOCATIONPROVIDER
 import 'package:flutter/services.dart';
@@ -61,7 +62,7 @@ class _MainWrapperState extends State<MainWrapper> {
   int _selectedIndex = 0;
   final List<Widget> _screens = [
     const HomePage(),
-    ProductDetailScreen(product: demoProduct),
+    ProductListingPage(categoryTitle: 'electronics'),
     const ListingScreen(),
     const OrdersPage(),
     const ProfilePage(),

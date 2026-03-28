@@ -167,14 +167,6 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
-                        Wrap(
-                          spacing: 8,
-                          children: [
-                            "Tech Enthusiast",
-                            "Eco-Conscious",
-                          ].map((tag) => _buildTag(tag)).toList(),
-                        ),
                       ],
                     ),
                   ),

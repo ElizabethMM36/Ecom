@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mobile_app/features/listing/listing_screen.dart';
 import '../../core/theme/aura_theme.dart';
 import '../product_detail_screen.dart';
 import '../../core/models/product.dart';
 import '../../widgets/global_nav_bar.dart';
+import '../post_product/product_listing.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -235,7 +237,15 @@ class _HomePageState extends State<HomePage> {
       itemBuilder: (context, index) {
         final cat = categories[index];
         return InkWell(
-          onTap: () => print("Category: ${cat['title']}"),
+          onTap: () => {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    ProductListingPage(categoryTitle: cat['title'] as String),
+              ),
+            ),
+          },
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
