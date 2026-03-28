@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mobile_app/core/theme/aura_theme.dart';
+import 'package:mobile_app/screens/auth/login.dart';
 import '../../widgets/global_nav_bar.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -25,6 +27,49 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            "Logout",
+            style: GoogleFonts.lexend(fontWeight: FontWeight.bold),
+          ),
+          content: Text(
+            "Are you sure you want to log out of Second Shop?",
+            style: GoogleFonts.lexend(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                "Cancel",
+                style: GoogleFonts.lexend(color: Colors.grey),
+              ),
+            ),
+            TextButton(
+              child: Text(
+                "Logout",
+                style: GoogleFonts.lexend(
+                  color: AuraTheme.primaryContainer,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              onPressed: () {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                  (route) => false,
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Theme Colors based on your HTML setup
@@ -46,6 +91,11 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
         actions: [
+          // LOGOUT BUTTON
+          IconButton(
+            icon: const Icon(Icons.logout_rounded, color: Colors.redAccent),
+            onPressed: () => _showLogoutDialog(context),
+          ),
           IconButton(
             icon: const Icon(Icons.search, color: primaryColor),
             onPressed: () {},
@@ -85,6 +135,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             color: primaryColor,
                           ),
                         ),
+
                         const SizedBox(height: 4),
                         Row(
                           children: [
@@ -95,6 +146,21 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                             Text(
                               " Portland, OR",
+                              style: GoogleFonts.lexend(
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.phone,
+                              size: 16,
+                              color: primaryColor,
+                            ),
+                            Text(
+                              " +91 9876564689",
                               style: GoogleFonts.lexend(
                                 color: Colors.grey[600],
                               ),

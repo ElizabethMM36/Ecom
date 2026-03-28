@@ -3,15 +3,13 @@ import 'package:provider/provider.dart';
 import '../providers/location_provider.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../core/theme/aura_theme.dart';
+import 'dart:async'; // Required for Timer
+
 class LocationPicker extends StatefulWidget {
   final Function(double, double, String, String) onLocationSelected;
-  final bool allowMapSelection;
 
-  const LocationPicker({
-    required this.onLocationSelected,
-    this.allowMapSelection = true,
-    Key? key,
-  }) : super(key: key);
+  const LocationPicker({required this.onLocationSelected, super.key});
 
   @override
   State<LocationPicker> createState() => _LocationPickerState();
@@ -19,131 +17,192 @@ class LocationPicker extends StatefulWidget {
 
 class _LocationPickerState extends State<LocationPicker> {
   final TextEditingController _addressController = TextEditingController();
+  Timer? _debounce;
+
+  // Cleanup timer on close
+  @override
+  void dispose() {
+    _addressController.dispose();
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  // Prevents hitting API too frequently (1 request per second policy)
+  void _onSearchChanged(String query, LocationProvider provider) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 1000), () {
+      if (query.isNotEmpty) {
+        provider.geocodeAddress(query);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<LocationProvider>(
       builder: (context, locationProvider, _) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Address Input
-            TextField(
-              controller: _addressController,
-              decoration: InputDecoration(
-                labelText: 'Search or Enter Address',
-                hintText: 'e.g., Times Square, New York',
-                prefixIcon: Icon(Icons.location_on),
-                suffixIcon: _addressController.text.isNotEmpty
-                    ? IconButton(
-                        icon: Icon(Icons.clear),
-                        onPressed: () {
-                          _addressController.clear();
-                          locationProvider.clearLocation();
-                        },
-                      )
-                    : null,
-                border: OutlineInputBorder(),
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'FIND DELIVERY ADDRESS',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.2,
+                  color: AuraTheme.secondary,
+                ),
               ),
-              onChanged: (value) => setState(() {}),
-              onSubmitted: (value) {
-                locationProvider.geocodeAddress(value);
-              },
-            ),
-            SizedBox(height: 10),
+              const SizedBox(height: 16),
 
-            // Search Button
-            ElevatedButton.icon(
-              icon: Icon(Icons.search),
-              label: Text('Search Address'),
-              onPressed: () {
-                if (_addressController.text.isNotEmpty) {
-                  locationProvider.geocodeAddress(_addressController.text);
-                }
-              },
-            ),
-            SizedBox(height: 10),
-
-            // Current Location Button
-            ElevatedButton.icon(
-              icon: Icon(Icons.my_location),
-              label: Text('Use Current Location'),
-              onPressed: () {
-                locationProvider.getCurrentLocation();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue.shade700,
+              // Address Input
+              TextField(
+                controller: _addressController,
+                onChanged: (value) => _onSearchChanged(value, locationProvider),
+                decoration: InputDecoration(
+                  hintText: 'Search street, city, or landmark...',
+                  prefixIcon: const Icon(
+                    Icons.search_rounded,
+                    color: AuraTheme.primary,
+                  ),
+                  filled: true,
+                  fillColor: AuraTheme.surfaceContainerLow,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide.none,
+                  ),
+                  suffixIcon: _addressController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.cancel, color: Colors.grey),
+                          onPressed: () {
+                            _addressController.clear();
+                            locationProvider.clearLocation();
+                          },
+                        )
+                      : null,
+                ),
               ),
-            ),
-            SizedBox(height: 20),
+              const SizedBox(height: 12),
 
-            // Selected Location Display
-            if (locationProvider.latitude != null)
-              Card(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
+              // Quick Action: Current Location
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.my_location_rounded, size: 18),
+                  label: const Text('Use My Current Location'),
+                  onPressed: () => locationProvider.getCurrentLocation(),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AuraTheme.primary,
+                    side: const BorderSide(color: AuraTheme.primary),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Loading State
+              if (locationProvider.isLoading)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(20.0),
+                    child: CircularProgressIndicator(color: AuraTheme.primary),
+                  ),
+                ),
+
+              // Error State
+              if (locationProvider.error != null)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline, color: Colors.red),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          locationProvider.error!,
+                          style: TextStyle(
+                            color: Colors.red.shade900,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+              // Results Card
+              if (locationProvider.latitude != null &&
+                  !locationProvider.isLoading)
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AuraTheme.primary.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(
+                      color: AuraTheme.primary.withOpacity(0.2),
+                    ),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Selected Location',
-                        style: Theme.of(context).textTheme.titleLarge,
+                      const Text(
+                        'Location Found',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AuraTheme.primary,
+                        ),
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 8),
                       Text(
-                        locationProvider.address ?? 'Address not available',
-                        style: Theme.of(context).textTheme.bodyMedium,
+                        locationProvider.address ?? 'No address string found',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AuraTheme.onSurface,
+                        ),
                       ),
-                      SizedBox(height: 5),
-                      Text(
-                        'City: ${locationProvider.city ?? 'Unknown'}',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      SizedBox(height: 5),
-                      Text(
-                        'Coordinates: ${locationProvider.latitude!.toStringAsFixed(4)}, ${locationProvider.longitude!.toStringAsFixed(4)}',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      SizedBox(height: 15),
+                      const Divider(height: 24),
                       ElevatedButton(
                         onPressed: () {
                           widget.onLocationSelected(
                             locationProvider.latitude!,
                             locationProvider.longitude!,
                             locationProvider.address ?? '',
-                            locationProvider.city ?? '',
+                            locationProvider.city ?? 'Unknown',
                           );
-                          Navigator.pop(context);
                         },
-                        child: Text('Confirm Location'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AuraTheme.primary,
+                          minimumSize: const Size(double.infinity, 50),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          'CONFIRM AND CONTINUE',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
-              )
-            else if (locationProvider.isLoading)
-              Center(child: CircularProgressIndicator())
-            else if (locationProvider.error != null)
-              Container(
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade100,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'Error: ${locationProvider.error}',
-                  style: TextStyle(color: Colors.red.shade800),
-                ),
-              ),
-          ],
+              const SizedBox(height: 16),
+            ],
+          ),
         );
       },
     );
-  }
-
-  @override
-  void dispose() {
-    _addressController.dispose();
-    super.dispose();
   }
 }

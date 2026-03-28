@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-
+import 'package:mobile_app/screens/auth/register.dart';
+import 'package:provider/provider.dart'; // 1. ADD THIS FOR MULTIPROVIDER
+import 'package:mobile_app/providers/location_provider.dart'; // 2. ADD THIS FOR LOCATIONPROVIDER
 import 'package:flutter/services.dart';
-import 'package:mobile_app/screens/auth/Register.dart';
 import 'package:mobile_app/screens/auth/login.dart';
 import 'package:mobile_app/screens/home/home_page.dart';
 import 'package:mobile_app/screens/orders/orders_page.dart';
@@ -10,6 +11,7 @@ import 'package:mobile_app/screens/profile/profile_page.dart';
 import 'package:mobile_app/widgets/global_nav_bar.dart';
 import 'core/theme/aura_theme.dart';
 import 'features/listing/listing_screen.dart';
+import '../../widgets/location_picker.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,7 +42,11 @@ class MyApp extends StatelessWidget {
       title: 'SecondShop',
       debugShowCheckedModeBanner: false,
       theme: AuraTheme.light,
-      home: const MainWrapper(),
+      routes: {
+        '/': (context) => const MainWrapper(),
+        '/login': (context) => const LoginPage(),
+        '/register': (context) => const RegisterScreen(),
+      },
     );
   }
 }

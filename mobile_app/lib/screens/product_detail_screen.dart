@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/models/product.dart';
 import '../core/theme/aura_theme.dart';
+import 'checkout_screen.dart';
 
 final Product demoProduct = Product(
   id: '1',
@@ -364,7 +365,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       width: double.infinity,
       height: 65,
       child: ElevatedButton.icon(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const CheckoutScreen()),
+          );
+        },
         icon: const Icon(Icons.shopping_bag_outlined),
         label: Text(
           "Buy Now — \$${price.toStringAsFixed(0)}",
