@@ -88,7 +88,7 @@ async function analyzeListingRisk ({price , condition , sellerRating, daysActive
         seller_rating: Number(sellerRating ?? 0),
         days_active: Number(daysActive ?? 0),
     };
-    let lastError ;
+    let lastError = null; ;
     for(let attempt = 1 ; attempt <= AI_MAX_RETRIES ; attempt++){
 
     try{
@@ -102,18 +102,15 @@ async function analyzeListingRisk ({price , condition , sellerRating, daysActive
         
 
     }catch(err){
-     lastError = err ;
-     const isLastAttempt = attempt === AI_MAX_RETRIES ;
-     if (!isLastAttempt){
-        console.warn(`[AI] Attempt ${attempt} failed, retrying... (${err.message})`);
-        await new Promise(r => setTimeout(r, 500 * attempt)); // back-off
-     }
+     lastError = err;
+      console.warn(`[AI] Attempt ${attempt} failed, retrying... (${err.message})`);
+      // Optional: add a small delay (sleep) here for back-of
 
     }}
-} 
-  // All retries exhausted → graceful degradation
+// FIXED: These lines are now INSIDE the function
   console.error(`[AI] analyzeListingRisk failed after ${AI_MAX_RETRIES} attempts:`, lastError?.message);
   return { ...FALLBACK_RESULT };
+} // Function ends here
 // ── Public: healthCheck ───────────────────────────────────────────────────────
 // Useful for your /api/admin/ai-status endpoint or startup check
 async function healthCheck() {

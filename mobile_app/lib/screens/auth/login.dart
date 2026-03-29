@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 // Assuming these are your existing widget paths
-
+import '../../core/services/api_service.dart';
 import '../../core/theme/aura_theme.dart';
 
 class LoginPage extends StatefulWidget {
@@ -54,8 +54,6 @@ class _LoginPageState extends State<LoginPage> {
                     _buildLoginForm(),
                     const SizedBox(height: 32),
                     _buildFooter(),
-                    const SizedBox(height: 48),
-                    _buildBottomGallery(),
                   ],
                 ),
               ),
@@ -232,8 +230,18 @@ class _LoginPageState extends State<LoginPage> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(100),
-          onTap: () {
-            // Handle Sign In Logic
+          onTap: () async {
+            try {
+              await ApiService.login(
+                _emailController.text,
+                _passwordController.text,
+              );
+              Navigator.pushNamed(context, '/home');
+            } catch (e) {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(e.toString())));
+            }
           },
           child: Center(
             child: Row(
@@ -269,7 +277,7 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ),
         TextButton(
-          onPressed: () {},
+          onPressed: () => Navigator.pushNamed(context, '/register'),
           child: Text(
             "Create Account",
             style: GoogleFonts.lexend(
@@ -278,19 +286,6 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _buildBottomGallery() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _buildGalleryItem(-0.2, 'https://via.placeholder.com/100x150'),
-        const SizedBox(width: 16),
-        _buildGalleryItem(0.0, 'https://via.placeholder.com/100x150'),
-        const SizedBox(width: 16),
-        _buildGalleryItem(0.15, 'https://via.placeholder.com/100x150'),
       ],
     );
   }

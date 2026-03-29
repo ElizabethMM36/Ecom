@@ -1,9 +1,11 @@
 const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
     name: {type: String , required: true},
-    email: {type: String , unique: true, required: true},
+    email: {type: String , unique: true, required: true,lowercase: true},
     password: {type: String, required: true},
-    age:{ type: String , required: true},
+    age:{ type: Number , required: true},
+    // ── NEW: Profile Picture ──────────────────────────────────────────
+    profilePicture: { type: String, default: null }, // URL to the image
     phone:{ type : String , required: true},
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
     location: {

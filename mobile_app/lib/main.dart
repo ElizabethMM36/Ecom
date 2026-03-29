@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_app/screens/auth/register.dart';
+import 'package:mobile_app/screens/auth/welcome_page.dart';
 import 'package:mobile_app/screens/post_product/product_listing.dart';
 import 'package:provider/provider.dart'; // 1. ADD THIS FOR MULTIPROVIDER
 import 'package:mobile_app/providers/location_provider.dart'; // 2. ADD THIS FOR LOCATIONPROVIDER
@@ -13,6 +14,7 @@ import 'package:mobile_app/widgets/global_nav_bar.dart';
 import 'core/theme/aura_theme.dart';
 import 'features/listing/listing_screen.dart';
 import '../../widgets/location_picker.dart';
+import 'core/services/api_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,8 +45,34 @@ class MyApp extends StatelessWidget {
       title: 'SecondShop',
       debugShowCheckedModeBanner: false,
       theme: AuraTheme.light,
+      home: FutureBuilder<String?>(
+        future:
+            ApiService.getToken(), // Checks SharedPreferences for 'jwt_token'
+        builder: (context, snapshot) {
+          // 1. While the app is checking the storage
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(
+              body: Center(
+                child: CircularProgressIndicator(color: Color(0xFF476247)),
+              ),
+            );
+          }
+
+          // 2. If a token exists, the user is logged in
+          if (snapshot.hasData &&
+              snapshot.data != null &&
+              snapshot.data!.isNotEmpty) {
+            return const MainWrapper();
+          }
+
+          // 3. If no token is found, show the Welcome/Splash screen
+          return const WelcomePage();
+        },
+      ),
+
       routes: {
-        '/': (context) => const MainWrapper(),
+        '/welcome': (context) => const WelcomePage(),
+        '/home': (context) => const MainWrapper(),
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterScreen(),
       },

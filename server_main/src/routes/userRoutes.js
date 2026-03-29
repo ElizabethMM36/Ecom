@@ -7,8 +7,23 @@ const authMiddleware = require('../middleware/authMiddleware');
 const locationUtils = require('../utils/locationUtils');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { upload } = require('../config/cloudinary');
+// PATCH: Update Profile Picture
+router.patch('/profile/image', authMiddleware, upload.single('profilePicture'), async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ error: "No image uploaded" });
 
+        const user = await User.findByIdAndUpdate(
+            req.user.id,
+            { profilePicture: req.file.path }, // Cloudinary URL
+            { new: true }
+        ).select('-password');
 
+        res.json({ success: true, profilePicture: user.profilePicture });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 // POST: Register new user with optional location
 router.post('/register', async (req, res) => {
     try {
@@ -90,7 +105,15 @@ router.post('/register', async (req, res) => {
         res.status(400).json({ error: error.message });
     }
 });
-
+// GET: Verify if the token is still valid
+router.get('/verify-token', authMiddleware, (req, res) => {
+    // If authMiddleware passes, req.user is populated
+    res.json({ 
+        success: true, 
+        isLoggedIn: true, 
+        user: req.user 
+    });
+});
 // POST: Login
 router.post('/login',  async (req, res) => {
     try {

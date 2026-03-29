@@ -62,7 +62,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         const SizedBox(height: 24),
         Text(
-          'Aura',
+          'SecondShop',
           style: GoogleFonts.lexend(
             fontSize: 40,
             fontWeight: FontWeight.w900,

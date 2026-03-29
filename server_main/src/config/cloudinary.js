@@ -21,7 +21,19 @@ const storage = new CloudinaryStorage({
     transformation: [{ width: 800, height: 800, crop: 'limit' }] // Auto-resize
   },
 });
+// Storage for User Profile Pictures
+const profileStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'techhub_profiles', // Separate folder
+    allowed_formats: ['jpg', 'png', 'jpeg'],
+    transformation: [{ width: 400, height: 400, crop: 'thumb', gravity: 'face' }] // Auto-crop to face!
+  },
+});
 
+const uploadProduct = multer({ storage: productStorage });
+const uploadProfile = multer({ storage: profileStorage });
 const upload = multer({ storage: storage });
 
-module.exports = { cloudinary, upload };
+module.exports = { cloudinary, upload: uploadProduct, // Default export for products
+    uploadProfile };

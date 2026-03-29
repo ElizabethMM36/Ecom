@@ -1,52 +1,67 @@
 // lib/core/services/api_service.dart
-//
-// Sends a completed listing (image + form data + camera AI flags) to
-// POST /api/products on your Node.js server_main backend.
 
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class ApiService {
-  // ── Change this to your machine's LAN IP when testing on a real device ──
-  // Emulator: http://10.0.2.2:5000
-  // Real device on same WiFi: http://192.168.x.x:5000
   static const String _baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://10.0.2.2:5000/api',
+    defaultValue: 'http://10.0.2.2:3000',
   );
 
-  // ── Get stored JWT from SharedPreferences ──────────────────────────────────
-  static Future<String?> _getToken() async {
+  static Future<Map<String, dynamic>> login(
+    String email,
+    String password,
+  ) async {
+    // Added a timeout and error handling for network connectivity
+    final response = await http
+        .post(
+          Uri.parse('$_baseUrl/users/login'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'email': email, 'password': password}),
+        )
+        .timeout(
+          const Duration(seconds: 15),
+          onTimeout: () =>
+              throw Exception('Connection timed out. Is the server running?'),
+        );
+
+    final data = _parseJson(response.body);
+
+    if (response.statusCode == 200 && data['success'] == true) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('jwt_token', data['token']);
+      return data;
+    } else {
+      throw Exception(data['error'] ?? 'Login failed');
+    }
+  }
+
+  static Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('jwt_token');
+  }
+
+  static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('jwt_token');
   }
 
-  // ── POST /api/products ─────────────────────────────────────────────────────
-  // Sends multipart/form-data with:
-  //   • images[]          — captured image file
-  //   • All form fields   — title, category, price, etc.
-  //   • AI camera flags   — aiImageVerified, aiObjectLabel, aiBlurPassed
-  //   • Location          — latitude, longitude
-  //
-  // @param listing   ListingSubmission with all fields
-  // @returns         Map with { success, product, listingStatus, verificationNote }
   static Future<Map<String, dynamic>> submitListing(
     ListingSubmission listing,
   ) async {
-    final token = await _getToken();
+    final token = await getToken();
     if (token == null) {
       throw Exception('Not authenticated. Please log in.');
     }
 
     final uri = Uri.parse('$_baseUrl/products');
     final request = http.MultipartRequest('POST', uri);
-
-    // Auth header
     request.headers['Authorization'] = 'Bearer $token';
 
-    // ── Image file ─────────────────────────────────────────────────────────
     if (listing.imagePath != null) {
       final file = File(listing.imagePath!);
       final stream = http.ByteStream(file.openRead());
@@ -64,7 +79,6 @@ class ApiService {
       );
     }
 
-    // ── Core listing fields ────────────────────────────────────────────────
     request.fields.addAll({
       'title': listing.title,
       'category': listing.category,
@@ -74,17 +88,6 @@ class ApiService {
       if (listing.serialNumber?.isNotEmpty == true)
         'serialNumber': listing.serialNumber!,
       if (listing.location?.isNotEmpty == true) 'address': listing.location!,
-    });
-
-    // ── Location fields ────────────────────────────────────────────────────
-    if (listing.latitude != null && listing.longitude != null) {
-      request.fields['latitude'] = listing.latitude.toString();
-      request.fields['longitude'] = listing.longitude.toString();
-    }
-
-    // ── Flutter camera AI verification fields (Steps 5 & 6) ───────────────
-    // These tell the Node backend what the camera detected before capture
-    request.fields.addAll({
       'aiImageVerified': listing.aiImageVerified.toString(),
       'aiBlurPassed': listing.aiBlurPassed.toString(),
       if (listing.aiObjectLabel?.isNotEmpty == true)
@@ -92,7 +95,11 @@ class ApiService {
       'aiImageCategory': listing.category,
     });
 
-    // ── Send ───────────────────────────────────────────────────────────────
+    if (listing.latitude != null && listing.longitude != null) {
+      request.fields['latitude'] = listing.latitude.toString();
+      request.fields['longitude'] = listing.longitude.toString();
+    }
+
     final streamed = await request.send().timeout(
       const Duration(seconds: 30),
       onTimeout: () =>
@@ -110,47 +117,33 @@ class ApiService {
     }
   }
 
-  static Map<String, dynamic> _parseJson(String body) {
-    try {
-      // Using dart:convert
-      return Map<String, dynamic>.from(
-        (body.isNotEmpty ? _jsonDecode(body) : {}) as Map,
-      );
-    } catch (_) {
-      return {'error': 'Invalid response from server'};
-    }
-  }
+  // Cleaned up the JSON parsing to use the imported dart:convert directly
 
-  // ignore: prefer_typing_uninitialized_variables
-  static _jsonDecode(String body) {
-    // dart:convert is imported via the http package transitively
-    // Add: import 'dart:convert'; at the top of the file
-    // This is a placeholder — replace with:
-    //   import 'dart:convert';
-    //   return jsonDecode(body);
-    throw UnimplementedError('Add: import dart:convert and use jsonDecode');
+  static Map<String, dynamic> _parseJson(String body) {
+    print("SERVER RESPONSE BODY: $body"); // <--- Add this line
+    try {
+      if (body.isEmpty) return {};
+      return Map<String, dynamic>.from(jsonDecode(body) as Map);
+    } catch (e) {
+      return {'error': 'Invalid response: $e'};
+    }
   }
 }
 
-// ── Data class for a complete listing submission ───────────────────────────────
 class ListingSubmission {
   final String? imagePath;
   final String title;
   final String category;
   final double price;
   final String description;
-  final String condition; // 'New' | 'Like New' | 'Used' | 'Fair'
+  final String condition;
   final String? serialNumber;
   final String? location;
-
-  // Location
   final double? latitude;
   final double? longitude;
-
-  // Flutter camera AI flags — set from CameraScreen result
-  final bool aiImageVerified; // Step 5: TFLite object detected
-  final bool aiBlurPassed; // Step 6: blur check passed
-  final String? aiObjectLabel; // Step 5: what ML Kit detected
+  final bool aiImageVerified;
+  final bool aiBlurPassed;
+  final String? aiObjectLabel;
 
   const ListingSubmission({
     this.imagePath,
