@@ -13,7 +13,7 @@ cloudinary.config({
 });
 
 // Set up the storage engine
-const storage = new CloudinaryStorage({
+const productStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'techhub_products', // The folder name in your Cloudinary account
@@ -33,7 +33,7 @@ const profileStorage = new CloudinaryStorage({
 
 const uploadProduct = multer({ storage: productStorage });
 const uploadProfile = multer({ storage: profileStorage });
-const upload = multer({ storage: storage });
+
 
 module.exports = { cloudinary, upload: uploadProduct, // Default export for products
     uploadProfile };

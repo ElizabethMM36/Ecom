@@ -41,7 +41,7 @@ const FALLBACK_RESULT = {
 // ── Internal: single axios call ───────────────────────────────────────────────
 async function _callFastAPI(payload){
     const response = await axios.post(
-        `${AI_SERIVE_URL}/analyze-listing`,
+        `${AI_SERVICE_URL}/analyze-listing`,
         payload,
         {
             timeout: AI_TIMEOUT_MS,

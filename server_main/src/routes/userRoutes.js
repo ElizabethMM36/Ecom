@@ -137,7 +137,7 @@ router.post('/login',  async (req, res) => {
         res.json({ 
             success: true, 
             token, // Send this to Flutter
-            user: { id: user._id, name: user.name, email: user.email }
+            user: { id: user._id, name: user.name, email: user.email ,phone: user.phone, profilePicture : user.profilePicture}
         });
 
         const response = user.toObject();

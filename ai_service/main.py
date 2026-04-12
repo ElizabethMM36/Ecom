@@ -51,7 +51,7 @@ async def analyze_listing(payload: ListingAnalysisRequest):
             payload.seller_rating,
             payload.days_active,
         ]])
-        features_scaled = kmeans.transform(features_scaled)[0]
+        features_scaled = scaler.transform(features_scaled)[0]
         cluster_id = int(kmeans.predict(features_scaled)[0])
         distances = kmeans.transform(features_scaled)[0]
         assigned_distance = distances[cluster_id]

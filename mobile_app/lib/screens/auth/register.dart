@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mobile_app/core/services/api_service.dart';
 import '../../core/theme/aura_theme.dart'; // Adjust path as needed
 
 class RegisterScreen extends StatefulWidget {
@@ -12,6 +13,45 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   bool _agreeToTerms = false;
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _ageController = TextEditingController();
+  bool _isLoading = false;
+  Future<void> _handleSignUp() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (!_agreeToTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please agree to the Terms & Conditions')),
+      );
+      return;
+    }
+    setState(() => _isLoading = true);
+    try {
+      final result = await ApiService.register(
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        phone: _phoneController.text.trim(),
+        age: _ageController.hashCode,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result['message'] ?? 'Account created')),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -107,18 +147,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
               label: 'Full Name',
               hint: 'Alex Rivera',
               icon: Icons.person,
+              controller: _nameController,
+              validator: (v) => v!.isEmpty ? 'Enter your name' : null,
             ),
             const SizedBox(height: 24),
             _buildInputField(
               label: 'Email Address',
               hint: 'alex@aura.shop',
               icon: Icons.mail,
+              controller: _emailController,
+              validator: (v) =>
+                  !v!.contains('@') ? 'Enter a valid email' : null,
             ),
             const SizedBox(height: 24),
             _buildInputField(
               label: 'Phone Number',
               hint: '+1 (555) 000-0000',
               icon: Icons.call,
+              controller: _phoneController,
+              validator: (v) => v!.isEmpty ? 'Enter your phone number' : null,
             ),
             const SizedBox(height: 24),
             _buildInputField(
@@ -126,6 +173,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
               hint: '••••••••••••',
               icon: Icons.lock,
               isPassword: true,
+              controller: _passwordController,
+              validator: (v) => v!.isEmpty ? 'Enter your password' : null,
+            ),
+            const SizedBox(height: 24),
+            _buildInputField(
+              label: 'age',
+              hint: 'Above 18',
+              icon: Icons.person,
+
+              controller: _ageController,
+              validator: (v) => v!.isEmpty ? 'Enter your age' : null,
             ),
             const SizedBox(height: 20),
             _buildTermsCheckbox(),
@@ -141,11 +199,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     required String label,
     required String hint,
     required IconData icon,
+    required TextEditingController controller, // Integrated
     bool isPassword = false,
+    String? Function(String?)? validator, // Integrated
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Changed from 'child' to 'children'
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 8),
           child: Text(
@@ -159,7 +220,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         ),
         TextFormField(
+          controller: controller, // Added
+          validator: validator, // Added
           obscureText: isPassword,
+          style: GoogleFonts.lexend(color: const Color(0xFF002117)),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: GoogleFonts.lexend(
@@ -189,6 +253,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 color: Color(0xFF065F46),
                 width: 1.5,
               ),
+            ),
+            // Added error styling so the validator messages look good
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.redAccent),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
             ),
           ),
         ),
@@ -234,7 +307,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: _isLoading ? null : _handleSignUp,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF065F46),
           foregroundColor: Colors.white,

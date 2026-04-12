@@ -3,11 +3,14 @@ import 'package:google_fonts/google_fonts.dart';
 import '../core/models/product.dart';
 import '../core/theme/aura_theme.dart';
 import 'checkout_screen.dart';
+import '../core/providers/user_provider.dart';
+import 'package:provider/provider.dart';
 
 final Product demoProduct = Product(
   id: '1',
   name: "Heritage Chronograph 1972",
   location: "Portland, OR",
+  sellerId: 'user_123',
   condition: "Like New",
   serialNumber: "SN-8829-X",
   price: 145,
@@ -304,17 +307,25 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Widget _buildSellerCard(Seller seller) {
+    final currentUser = Provider.of<UserProvider>(context).user;
+    final bool isOwnListing = currentUser?['id'] == widget.product.sellerId;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: isOwnListing
+            ? Border.all(color: primaryGreen.withOpacity(0.3))
+            : null,
       ),
       child: Row(
         children: [
           CircleAvatar(
             radius: 25,
-            backgroundImage: NetworkImage(seller.imageUrl),
+            backgroundColor: surfaceContainer,
+            backgroundImage: seller.imageUrl.isNotEmpty
+                ? NetworkImage(seller.imageUrl)
+                : null,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -322,7 +333,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  seller.name,
+                  isOwnListing ? "You (Seller)" : seller.name,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Row(
@@ -344,41 +355,56 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ],
             ),
           ),
-          TextButton(
-            onPressed: () {},
-            style: TextButton.styleFrom(backgroundColor: surfaceContainer),
-            child: Text(
-              "Message",
-              style: TextStyle(
-                color: primaryGreen,
-                fontWeight: FontWeight.bold,
+          if (!isOwnListing)
+            TextButton(
+              onPressed: () {},
+              style: TextButton.styleFrom(backgroundColor: surfaceContainer),
+              child: Text(
+                "Message",
+                style: TextStyle(
+                  color: primaryGreen,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-          ),
+            )
+          else
+            Icon(Icons.edit_note, color: primaryGreen),
         ],
       ),
     );
   }
 
   Widget _buildBuyButton(double price) {
+    final currentUser = Provider.of<UserProvider>(context).user;
+    final bool isOwnListing = currentUser?['id'] == widget.product.sellerId;
     return SizedBox(
       width: double.infinity,
       height: 65,
       child: ElevatedButton.icon(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const CheckoutScreen()),
-          );
-        },
-        icon: const Icon(Icons.shopping_bag_outlined),
+        onPressed: isOwnListing
+            ? null
+            : () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CheckoutScreen(),
+                  ),
+                );
+              },
+        icon: Icon(
+          isOwnListing
+              ? Icons.inventory_2_outlined
+              : Icons.shopping_bag_outlined,
+        ),
         label: Text(
-          "Buy Now — \$${price.toStringAsFixed(0)}",
+          isOwnListing
+              ? "Manage Listing"
+              : "Buy Now — \$${price.toStringAsFixed(0)}",
           style: GoogleFonts.lexend(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryGreen,
-          foregroundColor: Colors.white,
+          backgroundColor: isOwnListing ? Colors.grey[300] : primaryGreen,
+          foregroundColor: isOwnListing ? Colors.black54 : Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),

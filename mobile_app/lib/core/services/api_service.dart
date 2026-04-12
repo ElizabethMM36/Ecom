@@ -11,6 +11,39 @@ class ApiService {
     'API_BASE_URL',
     defaultValue: 'http://10.0.2.2:3000',
   );
+  static Future<Map<String, dynamic>> register({
+    required String name,
+    required String email,
+    required String password,
+    required String phone,
+    required int age,
+    double? latitude,
+    double? longitude,
+  }) async {
+    final response = await http
+        .post(
+          Uri.parse('$_baseUrl/users/register'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'name': name,
+            'email': email,
+            'password': password,
+            'phone': phone,
+            'age': age,
+            if (latitude != null) 'latitude': latitude,
+            if (longitude != null) 'longitude': longitude,
+          }),
+        )
+        .timeout(const Duration(seconds: 15));
+
+    final data = _parseJson(response.body);
+
+    if (response.statusCode == 201 && data['success'] == true) {
+      return data;
+    } else {
+      throw Exception(data['error'] ?? 'Registration failed');
+    }
+  }
 
   static Future<Map<String, dynamic>> login(
     String email,
@@ -37,6 +70,23 @@ class ApiService {
       return data;
     } else {
       throw Exception(data['error'] ?? 'Login failed');
+    }
+  }
+
+  static Future<Map<String, dynamic>> getUserProfile(String userId) async {
+    final token = await getToken();
+    final response = await http.get(
+      Uri.parse('$_baseUrl/users/profile/$userId'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    final data = jsonDecode(response.body);
+    if (response.statusCode == 200) {
+      return data;
+    } else {
+      throw Exception(data['error'] ?? 'Failed to load profile');
     }
   }
 

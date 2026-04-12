@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 class Product {
   final String id;
   final String name;
+  final String sellerId;
   final String location;
   final String condition;
   final String serialNumber;
@@ -19,6 +20,7 @@ class Product {
   Product({
     required this.id,
     required this.name,
+    required this.sellerId,
     required this.location,
     required this.condition,
     required this.serialNumber,

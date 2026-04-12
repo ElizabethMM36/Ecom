@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/location_provider.dart';
+import '../../core/providers/location_provider.dart';
 import '../../widgets/location_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';

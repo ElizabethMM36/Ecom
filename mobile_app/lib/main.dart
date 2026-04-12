@@ -1,31 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
+import 'package:mobile_app/core/providers/user_provider.dart';
+import 'package:mobile_app/core/providers/location_provider.dart';
+import 'package:mobile_app/core/services/api_service.dart';
+import 'package:mobile_app/screens/auth/login.dart';
 import 'package:mobile_app/screens/auth/register.dart';
 import 'package:mobile_app/screens/auth/welcome_page.dart';
-import 'package:mobile_app/screens/post_product/product_listing.dart';
-import 'package:provider/provider.dart'; // 1. ADD THIS FOR MULTIPROVIDER
-import 'package:mobile_app/providers/location_provider.dart'; // 2. ADD THIS FOR LOCATIONPROVIDER
-import 'package:flutter/services.dart';
-import 'package:mobile_app/screens/auth/login.dart';
 import 'package:mobile_app/screens/home/home_page.dart';
-import 'package:mobile_app/screens/orders/orders_page.dart';
-import 'package:mobile_app/screens/product_detail_screen.dart';
 import 'package:mobile_app/screens/profile/profile_page.dart';
+import 'package:mobile_app/screens/orders/orders_page.dart';
+import 'package:mobile_app/screens/post_product/product_listing.dart';
+import 'package:mobile_app/features/listing/listing_screen.dart';
 import 'package:mobile_app/widgets/global_nav_bar.dart';
-import 'core/theme/aura_theme.dart';
-import 'features/listing/listing_screen.dart';
-import '../../widgets/location_picker.dart';
-import 'core/services/api_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Lock to portrait
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  // Edge-to-edge UI
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -33,7 +29,15 @@ void main() async {
     ),
   );
 
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => LocationProvider()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -44,12 +48,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'SecondShop',
       debugShowCheckedModeBanner: false,
-      theme: AuraTheme.light,
+      theme: ThemeData(useMaterial3: true),
       home: FutureBuilder<String?>(
-        future:
-            ApiService.getToken(), // Checks SharedPreferences for 'jwt_token'
+        future: ApiService.getToken(),
         builder: (context, snapshot) {
-          // 1. While the app is checking the storage
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Scaffold(
               body: Center(
@@ -58,18 +60,25 @@ class MyApp extends StatelessWidget {
             );
           }
 
-          // 2. If a token exists, the user is logged in
           if (snapshot.hasData &&
               snapshot.data != null &&
               snapshot.data!.isNotEmpty) {
+            // We use addPostFrameCallback to update Provider safely
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              final userProvider = Provider.of<UserProvider>(
+                context,
+                listen: false,
+              );
+              if (userProvider.user == null) {
+                userProvider.initializeFromToken(snapshot.data!);
+              }
+            });
             return const MainWrapper();
           }
 
-          // 3. If no token is found, show the Welcome/Splash screen
           return const WelcomePage();
         },
       ),
-
       routes: {
         '/welcome': (context) => const WelcomePage(),
         '/home': (context) => const MainWrapper(),
@@ -95,11 +104,10 @@ class _MainWrapperState extends State<MainWrapper> {
     const OrdersPage(),
     const ProfilePage(),
   ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // This is the "Edge-to-Edge" trick:
-      // It ensures the body content doesn't get cut off by the navbar
       extendBody: true,
       body: _screens[_selectedIndex],
       bottomNavigationBar: AuraBottomNav(

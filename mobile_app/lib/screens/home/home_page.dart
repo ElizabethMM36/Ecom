@@ -41,6 +41,7 @@ class _HomePageState extends State<HomePage> {
       id: '1',
       name: productData['name'] ?? "Heritage Chronograph 1972",
       location: "Portland, OR",
+      sellerId: "user_123",
       condition: productData['condition'] ?? "Like New",
       serialNumber: "SN-8829-X",
       price: double.parse(productData['price'] ?? "0"),
